@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Plus, Copy, Trash2, Share2, Home } from "lucide-react";
 import { useState } from "react";
@@ -14,12 +15,49 @@ interface Sticker {
   created_at: string;
 }
 
+interface Folder {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const Folder = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [newStickerContent, setNewStickerContent] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [folderName, setFolderName] = useState("");
+
+  const { data: folder } = useQuery({
+    queryKey: ["folder", folderId],
+    queryFn: async () => {
+      // Try to get existing folder
+      const { data: existingFolder, error: fetchError } = await supabase
+        .from("folders")
+        .select("*")
+        .eq("id", folderId)
+        .single();
+
+      if (existingFolder) {
+        setFolderName(existingFolder.name);
+        return existingFolder as Folder;
+      }
+
+      // Create folder if it doesn't exist
+      const { data: newFolder, error: insertError } = await supabase
+        .from("folders")
+        .insert({ id: folderId, name: "Untitled Folder" })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      setFolderName(newFolder.name);
+      return newFolder as Folder;
+    },
+  });
 
   const { data: stickers = [], isLoading } = useQuery({
     queryKey: ["stickers", folderId],
@@ -68,6 +106,24 @@ const Folder = () => {
     },
   });
 
+  const updateFolderName = useMutation({
+    mutationFn: async (name: string) => {
+      const { error } = await supabase
+        .from("folders")
+        .update({ name })
+        .eq("id", folderId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folder", folderId] });
+      toast.success("Folder name updated!");
+    },
+    onError: () => {
+      toast.error("Failed to update folder name");
+    },
+  });
+
   const handleCopy = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
@@ -100,6 +156,26 @@ const Folder = () => {
     }
   };
 
+  const handleFolderNameChange = () => {
+    const trimmedName = folderName.trim();
+    if (trimmedName && trimmedName !== folder?.name) {
+      updateFolderName.mutate(trimmedName);
+    } else if (!trimmedName && folder?.name) {
+      setFolderName(folder.name);
+    }
+    setIsEditingName(false);
+  };
+
+  const handleFolderNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleFolderNameChange();
+    } else if (e.key === "Escape") {
+      setFolderName(folder?.name || "Untitled Folder");
+      setIsEditingName(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
@@ -113,9 +189,23 @@ const Folder = () => {
             >
               <Home className="h-5 w-5" />
             </Button>
-            <h1 className="text-xl font-semibold text-foreground">
-              Folder: {folderId}
-            </h1>
+            {isEditingName ? (
+              <Input
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                onBlur={handleFolderNameChange}
+                onKeyDown={handleFolderNameKeyDown}
+                className="text-xl font-semibold max-w-md"
+                autoFocus
+              />
+            ) : (
+              <h1
+                className="text-xl font-semibold text-foreground cursor-pointer hover:text-primary transition-colors"
+                onClick={() => setIsEditingName(true)}
+              >
+                {folder?.name || folderId}
+              </h1>
+            )}
           </div>
           <Button onClick={handleShare} variant="outline" size="sm">
             <Share2 className="h-4 w-4 mr-2" />
