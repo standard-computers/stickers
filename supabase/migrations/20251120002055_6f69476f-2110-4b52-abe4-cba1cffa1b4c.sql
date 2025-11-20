@@ -1,0 +1,10 @@
+-- Fix search_path for handle_updated_at function
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER 
+SET search_path = public
+AS $$
+BEGIN
+  NEW.updated_at = timezone('utc'::text, now());
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
