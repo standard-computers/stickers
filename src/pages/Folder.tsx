@@ -93,6 +93,13 @@ const Folder = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.ctrlKey && e.key === "Enter") {
+      e.preventDefault();
+      handleAddSticker();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
@@ -135,9 +142,10 @@ const Folder = () => {
             {isAdding ? (
               <div className="p-4 rounded-lg border-2 border-dashed border-border bg-card">
                 <Textarea
-                  placeholder="Enter sticker text..."
+                  placeholder="Enter sticker text... (Ctrl+Enter to add)"
                   value={newStickerContent}
                   onChange={(e) => setNewStickerContent(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="mb-2 min-h-[120px] resize-none"
                   autoFocus
                 />
