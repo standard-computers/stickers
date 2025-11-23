@@ -66,7 +66,7 @@ const Folder = () => {
         .from("stickers")
         .select("*")
         .eq("folder_id", folderId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       return data as Sticker[];
