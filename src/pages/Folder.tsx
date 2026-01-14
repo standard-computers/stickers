@@ -4,8 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Copy, Trash2, Share2, Home } from "lucide-react";
+import { Plus, Trash2, Share2, Home } from "lucide-react";
 import { useState } from "react";
 import { StickerCard } from "@/components/StickerCard";
 
@@ -124,6 +135,33 @@ const Folder = () => {
     },
   });
 
+  const deleteFolder = useMutation({
+    mutationFn: async () => {
+      // Delete all stickers in the folder first
+      const { error: stickersError } = await supabase
+        .from("stickers")
+        .delete()
+        .eq("folder_id", folderId);
+      
+      if (stickersError) throw stickersError;
+
+      // Then delete the folder
+      const { error: folderError } = await supabase
+        .from("folders")
+        .delete()
+        .eq("id", folderId);
+
+      if (folderError) throw folderError;
+    },
+    onSuccess: () => {
+      toast.success("Folder deleted!");
+      navigate("/");
+    },
+    onError: () => {
+      toast.error("Failed to delete folder");
+    },
+  });
+
   const handleCopy = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
@@ -207,10 +245,36 @@ const Folder = () => {
               </h1>
             )}
           </div>
-          <Button onClick={handleShare} variant="outline" size="sm">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleShare} variant="outline" size="sm">
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="icon" className="text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete folder?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete this folder and all its stickers. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteFolder.mutate()}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </header>
 
