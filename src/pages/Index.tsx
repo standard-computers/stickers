@@ -1,13 +1,41 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { StickyNote } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [folderName, setFolderName] = useState("");
 
-  const createNewFolder = () => {
+  const createNewFolder = async () => {
     const randomId = Math.random().toString(36).substring(2, 10);
+    const name = folderName.trim() || "Untitled Folder";
+    
+    // Create folder in database with the provided name
+    await supabase.from("folders").insert({
+      id: randomId,
+      name: name,
+    });
+    
+    setIsDialogOpen(false);
+    setFolderName("");
     navigate(`/folder/${randomId}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      createNewFolder();
+    }
   };
 
   return (
@@ -22,7 +50,7 @@ const Index = () => {
         </div>
         
         <Button
-          onClick={createNewFolder}
+          onClick={() => setIsDialogOpen(true)}
           size="lg"
           className="text-lg px-8 py-6"
         >
@@ -33,6 +61,29 @@ const Index = () => {
           No signup required. Just create and share!
         </p>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Folder</DialogTitle>
+          </DialogHeader>
+          <Input
+            placeholder="Enter folder name..."
+            value={folderName}
+            onChange={(e) => setFolderName(e.target.value)}
+            onKeyDown={handleKeyDown}
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createNewFolder}>
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
