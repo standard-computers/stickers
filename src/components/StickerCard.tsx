@@ -1,11 +1,17 @@
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Trash2, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface StickerCardProps {
   content: string;
   colorIndex: number;
   onCopy: () => void;
   onDelete: () => void;
+  onColorChange?: (colorIndex: number) => void;
 }
 
 const colorClasses = [
@@ -16,13 +22,16 @@ const colorClasses = [
   "bg-sticker-purple",
 ];
 
+const colorLabels = ["Yellow", "Pink", "Blue", "Green", "Purple"];
+
 export const StickerCard = ({
   content,
   colorIndex,
   onCopy,
   onDelete,
+  onColorChange,
 }: StickerCardProps) => {
-  const colorClass = colorClasses[colorIndex];
+  const colorClass = colorClasses[colorIndex] || colorClasses[0];
 
   return (
     <div
@@ -34,6 +43,34 @@ export const StickerCard = ({
       </div>
       
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        {onColorChange && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 bg-background/80 hover:bg-background"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Palette className="h-3 w-3" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" onClick={(e) => e.stopPropagation()}>
+              <div className="flex gap-1">
+                {colorClasses.map((cls, idx) => (
+                  <button
+                    key={idx}
+                    className={`${cls} w-6 h-6 rounded-full border-2 transition-all ${
+                      idx === colorIndex ? "border-foreground scale-110" : "border-transparent hover:scale-105"
+                    }`}
+                    onClick={() => onColorChange(idx)}
+                    title={colorLabels[idx]}
+                  />
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
         <Button
           variant="ghost"
           size="icon"

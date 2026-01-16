@@ -24,6 +24,7 @@ interface Sticker {
   id: string;
   content: string;
   created_at: string;
+  color_index: number;
 }
 
 interface Folder {
@@ -114,6 +115,22 @@ const Folder = () => {
     },
     onError: () => {
       toast.error("Failed to delete sticker");
+    },
+  });
+
+  const updateStickerColor = useMutation({
+    mutationFn: async ({ id, colorIndex }: { id: string; colorIndex: number }) => {
+      const { error } = await supabase
+        .from("stickers")
+        .update({ color_index: colorIndex })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stickers", folderId] });
+    },
+    onError: () => {
+      toast.error("Failed to update color");
     },
   });
 
@@ -283,13 +300,14 @@ const Folder = () => {
           <div className="text-center text-muted-foreground">Loading...</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {stickers.map((sticker, index) => (
+            {stickers.map((sticker) => (
               <StickerCard
                 key={sticker.id}
                 content={sticker.content}
-                colorIndex={index % 5}
+                colorIndex={sticker.color_index}
                 onCopy={() => handleCopy(sticker.content)}
                 onDelete={() => deleteSticker.mutate(sticker.id)}
+                onColorChange={(colorIndex) => updateStickerColor.mutate({ id: sticker.id, colorIndex })}
               />
             ))}
 

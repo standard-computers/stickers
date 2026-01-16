@@ -37,6 +37,7 @@ export type Database = {
       }
       stickers: {
         Row: {
+          color_index: number
           content: string
           created_at: string
           folder_id: string
@@ -44,6 +45,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          color_index?: number
           content: string
           created_at?: string
           folder_id: string
@@ -51,6 +53,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          color_index?: number
           content?: string
           created_at?: string
           folder_id?: string
