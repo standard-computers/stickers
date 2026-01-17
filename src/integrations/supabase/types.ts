@@ -17,18 +17,21 @@ export type Database = {
       folders: {
         Row: {
           created_at: string
+          dark_mode: boolean
           id: string
           name: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          dark_mode?: boolean
           id: string
           name?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          dark_mode?: boolean
           id?: string
           name?: string
           updated_at?: string
