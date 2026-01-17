@@ -333,6 +333,7 @@ const Folder = () => {
               size="icon"
               onClick={() => navigate("/")}
               aria-label="Go home"
+              className="text-foreground hover:text-foreground"
             >
               <Home className="h-5 w-5" />
             </Button>
@@ -364,7 +365,7 @@ const Folder = () => {
               />
               <Moon className="h-4 w-4 text-muted-foreground" />
             </div>
-            <Button onClick={handleShare} variant="outline" size="sm">
+            <Button onClick={handleShare} variant="outline" size="sm" className="text-foreground border-border hover:bg-muted">
               <Share2 className="h-4 w-4 mr-2" />
               Share
             </Button>
