@@ -45,6 +45,7 @@ const Folder = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [focusedStickerId, setFocusedStickerId] = useState<string | null>(null);
 
   const { data: folder } = useQuery({
     queryKey: ["folder", folderId],
@@ -258,32 +259,69 @@ const Folder = () => {
     updateFolderDarkMode.mutate(checked);
   };
 
-  // Global 'N' shortcut to create new note when no input is focused
+  // Global keyboard shortcuts
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Check if 'n' or 'N' is pressed
-      if (e.key === 'n' || e.key === 'N') {
-        const activeElement = document.activeElement;
-        const tagName = activeElement?.tagName.toLowerCase();
-        
-        // Don't trigger if focus is on input, textarea, button, or contenteditable
-        if (
-          tagName === 'input' ||
-          tagName === 'textarea' ||
-          tagName === 'button' ||
-          (activeElement as HTMLElement)?.isContentEditable
-        ) {
-          return;
-        }
-        
+      const activeElement = document.activeElement;
+      const tagName = activeElement?.tagName.toLowerCase();
+      
+      // Don't trigger shortcuts if focus is on input, textarea, button, or contenteditable
+      const isInputFocused = 
+        tagName === 'input' ||
+        tagName === 'textarea' ||
+        tagName === 'button' ||
+        (activeElement as HTMLElement)?.isContentEditable;
+
+      // 'N' shortcut to create new note
+      if ((e.key === 'n' || e.key === 'N') && !isInputFocused) {
         e.preventDefault();
         setIsAdding(true);
+        setFocusedStickerId(null);
+        return;
+      }
+
+      // Arrow key navigation for focused sticker
+      if (focusedStickerId && !isInputFocused && stickers.length > 0) {
+        const currentIndex = stickers.findIndex(s => s.id === focusedStickerId);
+        if (currentIndex === -1) return;
+
+        let newIndex = currentIndex;
+        
+        if (e.key === 'ArrowRight') {
+          newIndex = (currentIndex + 1) % stickers.length;
+        } else if (e.key === 'ArrowLeft') {
+          newIndex = (currentIndex - 1 + stickers.length) % stickers.length;
+        } else if (e.key === 'ArrowDown') {
+          // Move to next row (assume 4 columns on large screens)
+          newIndex = Math.min(currentIndex + 4, stickers.length - 1);
+        } else if (e.key === 'ArrowUp') {
+          newIndex = Math.max(currentIndex - 4, 0);
+        }
+
+        if (newIndex !== currentIndex) {
+          e.preventDefault();
+          setFocusedStickerId(stickers[newIndex].id);
+        }
+      }
+
+      // Ctrl+C to copy focused sticker
+      if (e.ctrlKey && e.key === 'c' && focusedStickerId && !isInputFocused) {
+        const focusedSticker = stickers.find(s => s.id === focusedStickerId);
+        if (focusedSticker) {
+          e.preventDefault();
+          handleCopy(focusedSticker.content);
+        }
+      }
+
+      // Escape to clear focus
+      if (e.key === 'Escape' && focusedStickerId) {
+        setFocusedStickerId(null);
       }
     };
 
     document.addEventListener('keydown', handleGlobalKeyDown);
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+  }, [focusedStickerId, stickers]);
 
   return (
     <div className={`min-h-screen bg-background ${isDarkMode ? 'dark' : ''}`}>
@@ -368,9 +406,11 @@ const Folder = () => {
                 key={sticker.id}
                 content={sticker.content}
                 colorIndex={sticker.color_index}
+                isFocused={focusedStickerId === sticker.id}
                 onCopy={() => handleCopy(sticker.content)}
                 onDelete={() => deleteSticker.mutate(sticker.id)}
                 onColorChange={(colorIndex) => updateStickerColor.mutate({ id: sticker.id, colorIndex })}
+                onFocus={() => setFocusedStickerId(sticker.id)}
               />
             ))}
 

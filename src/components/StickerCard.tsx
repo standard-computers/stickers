@@ -9,9 +9,11 @@ import {
 interface StickerCardProps {
   content: string;
   colorIndex: number;
+  isFocused?: boolean;
   onCopy: () => void;
   onDelete: () => void;
   onColorChange?: (colorIndex: number) => void;
+  onFocus?: () => void;
 }
 
 const colorClasses = [
@@ -27,16 +29,25 @@ const colorLabels = ["Yellow", "Pink", "Blue", "Green", "Purple"];
 export const StickerCard = ({
   content,
   colorIndex,
+  isFocused,
   onCopy,
   onDelete,
   onColorChange,
+  onFocus,
 }: StickerCardProps) => {
   const colorClass = colorClasses[colorIndex] || colorClasses[0];
 
+  const handleClick = () => {
+    onFocus?.();
+    onCopy();
+  };
+
   return (
     <div
-      className={`${colorClass} p-4 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer group relative min-h-[150px] flex flex-col`}
-      onClick={onCopy}
+      className={`${colorClass} p-4 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer group relative min-h-[150px] flex flex-col ${
+        isFocused ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : ""
+      }`}
+      onClick={handleClick}
     >
       <div className="flex-1 break-words whitespace-pre-wrap text-foreground mb-2">
         {content}
