@@ -9,8 +9,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { StickyNote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import stickersLogo from "@/assets/stickers-logo.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ const Index = () => {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center space-y-8 px-4">
         <div className="space-y-4">
-          <StickyNote className="h-20 w-20 mx-auto text-primary" />
+          <img src={stickersLogo} alt="Stickers" className="h-24 w-24 mx-auto" />
           <h1 className="text-5xl font-bold text-foreground">Stickers</h1>
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
             Create shareable collections of text snippets. Click to copy, share the link.
