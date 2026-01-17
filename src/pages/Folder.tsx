@@ -379,6 +379,9 @@ const Folder = () => {
                   <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
                     Add Sticker
                   </p>
+                  <kbd className="mt-2 inline-block px-2 py-0.5 text-xs font-mono rounded bg-secondary text-secondary-foreground">
+                    N
+                  </kbd>
                 </div>
               </button>
             )}
