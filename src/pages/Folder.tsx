@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Plus, Trash2, Share2, Home } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StickerCard } from "@/components/StickerCard";
 
 interface Sticker {
@@ -230,6 +230,33 @@ const Folder = () => {
       setIsEditingName(false);
     }
   };
+
+  // Global 'N' shortcut to create new note when no input is focused
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Check if 'n' or 'N' is pressed
+      if (e.key === 'n' || e.key === 'N') {
+        const activeElement = document.activeElement;
+        const tagName = activeElement?.tagName.toLowerCase();
+        
+        // Don't trigger if focus is on input, textarea, button, or contenteditable
+        if (
+          tagName === 'input' ||
+          tagName === 'textarea' ||
+          tagName === 'button' ||
+          (activeElement as HTMLElement)?.isContentEditable
+        ) {
+          return;
+        }
+        
+        e.preventDefault();
+        setIsAdding(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
