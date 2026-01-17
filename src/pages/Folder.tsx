@@ -16,9 +16,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, Share2, Home } from "lucide-react";
+import { Plus, Trash2, Share2, Home, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { StickerCard } from "@/components/StickerCard";
+import { Switch } from "@/components/ui/switch";
 
 interface Sticker {
   id: string;
@@ -32,6 +33,7 @@ interface Folder {
   name: string;
   created_at: string;
   updated_at: string;
+  dark_mode: boolean;
 }
 
 const Folder = () => {
@@ -42,6 +44,7 @@ const Folder = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [folderName, setFolderName] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const { data: folder } = useQuery({
     queryKey: ["folder", folderId],
@@ -55,6 +58,7 @@ const Folder = () => {
 
       if (existingFolder) {
         setFolderName(existingFolder.name);
+        setIsDarkMode(existingFolder.dark_mode);
         return existingFolder as Folder;
       }
 
@@ -67,6 +71,7 @@ const Folder = () => {
 
       if (insertError) throw insertError;
       setFolderName(newFolder.name);
+      setIsDarkMode(newFolder.dark_mode);
       return newFolder as Folder;
     },
   });
@@ -152,6 +157,23 @@ const Folder = () => {
     },
   });
 
+  const updateFolderDarkMode = useMutation({
+    mutationFn: async (darkMode: boolean) => {
+      const { error } = await supabase
+        .from("folders")
+        .update({ dark_mode: darkMode })
+        .eq("id", folderId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folder", folderId] });
+    },
+    onError: () => {
+      toast.error("Failed to update dark mode");
+    },
+  });
+
   const deleteFolder = useMutation({
     mutationFn: async () => {
       // Delete all stickers in the folder first
@@ -231,6 +253,11 @@ const Folder = () => {
     }
   };
 
+  const handleDarkModeToggle = (checked: boolean) => {
+    setIsDarkMode(checked);
+    updateFolderDarkMode.mutate(checked);
+  };
+
   // Global 'N' shortcut to create new note when no input is focused
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -259,7 +286,7 @@ const Folder = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${isDarkMode ? 'dark' : ''}`}>
       <header className="border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -290,6 +317,15 @@ const Folder = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mr-2">
+              <Sun className="h-4 w-4 text-muted-foreground" />
+              <Switch
+                checked={isDarkMode}
+                onCheckedChange={handleDarkModeToggle}
+                aria-label="Toggle dark mode"
+              />
+              <Moon className="h-4 w-4 text-muted-foreground" />
+            </div>
             <Button onClick={handleShare} variant="outline" size="sm">
               <Share2 className="h-4 w-4 mr-2" />
               Share
@@ -379,7 +415,7 @@ const Folder = () => {
                   <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
                     Add Sticker
                   </p>
-                  <kbd className="mt-2 inline-block px-2 py-0.5 text-xs font-mono rounded bg-secondary text-secondary-foreground">
+                  <kbd className="mt-2 inline-block px-2 py-0.5 text-xs font-mono rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                     N
                   </kbd>
                 </div>
