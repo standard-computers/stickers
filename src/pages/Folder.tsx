@@ -388,10 +388,13 @@ const Folder = () => {
                   <Button
                     onClick={handleAddSticker}
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 gap-2"
                     disabled={!newStickerContent.trim()}
                   >
                     Add
+                    <kbd className="px-1.5 py-0.5 text-xs font-mono rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                      Ctrl+↵
+                    </kbd>
                   </Button>
                   <Button
                     onClick={() => {
