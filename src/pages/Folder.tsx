@@ -280,6 +280,13 @@ const Folder = () => {
         return;
       }
 
+      // 'S' shortcut to share
+      if ((e.key === 's' || e.key === 'S') && !isInputFocused) {
+        e.preventDefault();
+        handleShare();
+        return;
+      }
+
       // Arrow key navigation for focused sticker
       if (focusedStickerId && !isInputFocused && stickers.length > 0) {
         const currentIndex = stickers.findIndex(s => s.id === focusedStickerId);
@@ -368,6 +375,7 @@ const Folder = () => {
             <Button onClick={handleShare} variant="outline" size="sm" className="text-foreground border-border hover:bg-muted">
               <Share2 className="h-4 w-4 mr-2" />
               Share
+              <kbd className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">S</kbd>
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
