@@ -34,6 +34,7 @@ interface Folder {
   created_at: string;
   updated_at: string;
   dark_mode: boolean;
+  last_accessed: string;
 }
 
 const Folder = () => {
@@ -60,6 +61,13 @@ const Folder = () => {
       if (existingFolder) {
         setFolderName(existingFolder.name);
         setIsDarkMode(existingFolder.dark_mode);
+        
+        // Update last_accessed timestamp
+        await supabase
+          .from("folders")
+          .update({ last_accessed: new Date().toISOString() })
+          .eq("id", folderId);
+        
         return existingFolder as Folder;
       }
 
@@ -76,6 +84,14 @@ const Folder = () => {
       return newFolder as Folder;
     },
   });
+
+  // Run cleanup of stale folders on mount
+  useEffect(() => {
+    const cleanupStaleFolders = async () => {
+      await supabase.rpc('delete_stale_folders');
+    };
+    cleanupStaleFolders();
+  }, []);
 
   const { data: stickers = [], isLoading } = useQuery({
     queryKey: ["stickers", folderId],

@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           dark_mode: boolean
           id: string
+          last_accessed: string
           name: string
           updated_at: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           created_at?: string
           dark_mode?: boolean
           id: string
+          last_accessed?: string
           name?: string
           updated_at?: string
         }
@@ -33,6 +35,7 @@ export type Database = {
           created_at?: string
           dark_mode?: boolean
           id?: string
+          last_accessed?: string
           name?: string
           updated_at?: string
         }
@@ -70,7 +73,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_stale_folders: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
